@@ -3,8 +3,10 @@ import {API_KEY,API_URL,IMAGE_BASE_URL} from '../../Config';
 import MainImage from '../LandingPage/Section/MainImage';
 import MovieInfo from './Sections/MovieInfo';
 import { Row } from 'antd';
+import axios from 'axios';
 import GridCards from '../commons/GridCards';
 import Favorite from './Sections/Favorite';
+import Comments from './Sections/Comment';
 
 function MovieDetail(props) {
     //url에서 가져오기
@@ -12,6 +14,10 @@ function MovieDetail(props) {
     const [Movie, setMovie] = useState([])
     const [Casts, setCasts] = useState([])
     const [ActorToggle, setActorToggle] = useState(false)
+    const [CommentLists, setCommentLists] = useState([])
+    const movieVariable = {
+        movieId: movieId
+    }
 
     useEffect(() => {
         let endpointCrew = `${API_URL}movie/${movieId}/credits?api_key=${API_KEY}`
@@ -30,10 +36,26 @@ function MovieDetail(props) {
             //console.log(response)
             setCasts(response.cast)
         })
+
+        
+        axios.post('/api/comment/getComments', movieVariable)
+            .then(response => {
+                //console.log(response)
+                if (response.data.success) {
+                    //console.log('response.data.comments', response.data.comments)
+                    setCommentLists(response.data.comments)
+                } else {
+                    alert('댓글을 가져오는데 실패했습니다.')
+                }
+            })
     }, [])
     
     const toggleActorView = ()=>{
         setActorToggle(!ActorToggle)
+    }
+    
+    const updateComment = (newComment) => {
+        setCommentLists(CommentLists.concat(newComment))
     }
   return (
     <div>
@@ -77,6 +99,12 @@ function MovieDetail(props) {
 
                 </Row>
             }
+            <br/>
+
+            
+            {/* Comments */}
+            <Comments movieTitle={Movie.original_title} CommentLists={CommentLists} postId={movieId} refreshFunction={updateComment} />
+
 
         </div>
     </div>
